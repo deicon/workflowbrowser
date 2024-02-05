@@ -1,5 +1,7 @@
+#[derive(Debug)]
 pub enum WorkflowError {
-    ParseError
+    ParseError,
+    NotFound(String),
 }
 
 pub type WorkflowResult<T> = Result<T, WorkflowError>;

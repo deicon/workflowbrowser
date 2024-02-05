@@ -1,50 +1,18 @@
-use std::collections::HashMap;
-use std::iter::Map;
-use serde::{Deserialize, Serialize};
+/// highly inspired and mostly copied from
+/// https://github.com/warpdotdev/workflows/blob/main/workflow-types/src/lib.rs
 
-/// Arguments are the parameters that a workflow can take
-/// They are used to generate a form for the user to fill out
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, Default)]
-pub struct Argument {
-    name:String,
-    description:String,
-    default_value: String,
-}
-
-/// A workflow is a command that can be run
-/// It has a name, a command, tags, and a source URL
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, Default)]
-pub struct Workflow {
-    name: String,
-    command: String,
-    tags: Vec<String>,
-    source_url: String,
-    author: String,
-    author_url: String,
-    shells: Vec<String>,
-    description: String,
-    arguments: Vec<Argument>,
-}
-
-impl Workflow {
-    pub fn render(&self, values: HashMap<&str, &str>) -> String {
-        let mut command = self.command.clone();
-        for (key, arg) in values {
-            command = command.replace(&format!("{{{{{}}}}}", key), arg);
-        }
-        command
-    }
-}
-
+mod file_format;
+mod repository;
 
 #[cfg(test)]
 mod tests {
+    use crate::workflow::file_format::Workflow;
+    use serde_yaml;
+    use std::fs::File;
+    use std::io::BufReader;
     #[test]
     fn test_load_workflow_from_yaml() {
-        use serde_yaml;
-        use std::fs::File;
-        use std::io::BufReader;
-        use super::Workflow;
+
         let file = File::open("tests/fixtures/sample.yaml").unwrap();
         let reader = BufReader::new(file);
         let workflow: Workflow = serde_yaml::from_reader(reader).unwrap();
@@ -55,7 +23,6 @@ mod tests {
 
     #[test]
     fn test_render_workflow() {
-        use super::Workflow;
         let workflow = Workflow {
             command: "curl --header {{header}} \"{{url}}\"".to_string(),
             ..Workflow::default()
