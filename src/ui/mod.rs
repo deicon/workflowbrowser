@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use git2::ConfigLevel::App;
+
 use crate::prelude::directory::DirectoryRepository;
 use crate::prelude::git::GitRepository;
 

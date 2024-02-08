@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 // use clap::Parser;
-use di::{Ref, ServiceCollection, singleton_factory};
+
 // use crate::command::{Cli, Commands, HandleCommand};
 
-use crate::prelude::directory::DirectoryRepository;
-use crate::prelude::git::GitRepository;
+
+
 use crossterm::{
     event::{self, KeyCode, KeyEventKind},
     terminal::{
@@ -15,7 +15,7 @@ use crossterm::{
 };
 use ratatui::{Frame, prelude::{CrosstermBackend, Stylize, Terminal}, widgets::Paragraph};
 use std::io::{stdout, Result};
-use crate::prelude::WorkflowResult;
+
 use crate::ui::AppState;
 
 mod prelude;

@@ -16,9 +16,11 @@ pub struct GitRepository {
 
 impl GitRepository {
 
+    #[doc = r"Create a new GitRepository"]
     pub fn new(url: &str, branch: &str, path_buf: PathBuf) -> Self {
 
-        if let Err(WorkflowError::IoError(message)) = Self::clone(&url, path_buf.clone()) {
+        // clone git repository using https url
+        if let Err(WorkflowError::IoError(message)) = Self::clone_repository(url, path_buf.clone()) {
                 println!("{}", message)
         };
         GitRepository {
@@ -29,7 +31,7 @@ impl GitRepository {
         }
     }
 
-    fn clone(url: &str, root: PathBuf) -> WorkflowResult<()> {
+    fn clone_repository(url: &str, root: PathBuf) -> WorkflowResult<()> {
         // clone the git repository
         let mut builder = RepoBuilder::new();
         builder.with_checkout(CheckoutBuilder::new());
