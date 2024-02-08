@@ -1,8 +1,8 @@
 /// highly inspired and mostly copied from
 /// https://github.com/warpdotdev/workflows/blob/main/workflow-types/src/lib.rs
 
-mod file_format;
-mod repository;
+pub mod file_format;
+pub mod repository;
 
 #[cfg(test)]
 mod tests {

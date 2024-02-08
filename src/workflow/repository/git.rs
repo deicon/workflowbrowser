@@ -1,36 +1,41 @@
 use std::path::PathBuf;
-use crate::prelude::WorkflowResult;
+use di::injectable;
+use git2::build::{CheckoutBuilder, RepoBuilder};
+use crate::prelude::{WorkflowError, WorkflowResult};
 use crate::workflow::file_format::Workflow;
 use crate::workflow::repository::directory::DirectoryRepository;
 use crate::workflow::repository::WorkflowRepository;
-
-struct GitRepository {
+#[injectable(WorkflowRepository)]
+#[allow(dead_code)]
+pub struct GitRepository {
     url: String,
     branch: String,
     root: PathBuf,
-    directoryRepository: DirectoryRepository,
+    directory_repository: DirectoryRepository,
 }
-
-use git2::Repository;
 
 impl GitRepository {
 
-    pub fn new(url: String, branch: String, path_buf: PathBuf) -> Self {
-        Self::clone(&url, path_buf.clone());
+    pub fn new(url: &str, branch: &str, path_buf: PathBuf) -> Self {
+
+        if let Err(WorkflowError::IoError(message)) = Self::clone(&url, path_buf.clone()) {
+                println!("{}", message)
+        };
         GitRepository {
-            url,
-            branch,
+            url: url.to_string(),
+            branch: branch.to_string(),
             root: path_buf.clone(),
-            directoryRepository: DirectoryRepository::new(path_buf),
+            directory_repository: DirectoryRepository::new(path_buf),
         }
     }
 
     fn clone(url: &str, root: PathBuf) -> WorkflowResult<()> {
         // clone the git repository
-        let repo = Repository::clone(url, root);
-        if let Err(e) = repo {
-            panic!("Error cloning git repository: {}", e)
-        }
+        let mut builder = RepoBuilder::new();
+        builder.with_checkout(CheckoutBuilder::new());
+            
+        let _ = builder.clone(url, root.as_path())
+            .map_err(|_| {WorkflowError::IoError("Unable to clone repo".to_string())});
         Ok(())
     }
 
@@ -40,27 +45,27 @@ impl WorkflowRepository for GitRepository {
     fn refresh(&mut self) -> WorkflowResult<()> {
         // pull from git
         // update directoryRepository
-        self.directoryRepository.refresh()
+        self.directory_repository.refresh()
     }
 
-    fn get_workflow(&self, name: impl Into<String>) -> WorkflowResult<Workflow> {
-        self.directoryRepository.get_workflow(name)
+    fn get_workflow(&self, name: &str) -> WorkflowResult<Workflow> {
+        self.directory_repository.get_workflow(name)
     }
 
     fn get_workflows(&self) -> WorkflowResult<Vec<Workflow>> {
-        self.directoryRepository.get_workflows()
+        self.directory_repository.get_workflows()
     }
 
     fn save_workflow(&mut self, workflow: Workflow) -> WorkflowResult<()> {
-        self.directoryRepository.save_workflow(workflow)
+        self.directory_repository.save_workflow(workflow)
     }
 
     fn delete_workflow(&mut self, name: &str) -> WorkflowResult<()> {
-        self.directoryRepository.delete_workflow(name)
+        self.directory_repository.delete_workflow(name)
     }
 
     fn query_workflows(&self, query: &str) -> WorkflowResult<Vec<Workflow>> {
-        self.directoryRepository.query_workflows(query)
+        self.directory_repository.query_workflows(query)
     }
 }
 
@@ -68,9 +73,11 @@ impl WorkflowRepository for GitRepository {
 mod tests {
     use std::path::PathBuf;
     use crate::workflow::repository::git::GitRepository;
+    use crate::workflow::repository::WorkflowRepository;
 
     #[test]
     fn test_load_from_git() {
-        let repo = GitRepository::new("https://github.com/warpdotdev/workflows.git".to_string(), "main".to_string(), PathBuf::from("tests/fixtures/github/warpdotdev"));
+        let repo = GitRepository::new("https://github.com/warpdotdev/workflows.git", "main", PathBuf::from("tests/fixtures/github/warpdotdev"));
+        assert_eq!(332, repo.get_workflows().unwrap().len());
     }
 }

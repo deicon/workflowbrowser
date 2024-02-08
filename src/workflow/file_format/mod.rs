@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, PartialOrd)]
@@ -19,7 +21,7 @@ pub struct Argument {
     pub description: Option<String>,
     pub default_value: Option<String>,
 }
-
+#[allow(dead_code)]
 impl Argument {
     pub fn new(name: impl Into<String>) -> Self {
         Argument {
@@ -65,6 +67,24 @@ pub struct Workflow {
     pub shells: Vec<Shell>,
 }
 
+
+impl Display for Workflow {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Name: {}\nCommand: {}\nTags: {:?}\nDescription: {:?}\nArguments: {:?}\nSource URL: {:?}\nAuthor: {:?}\nAuthor URL: {:?}\nShells: {:?}",
+               self.name,
+               self.command,
+               self.tags,
+               self.description,
+               self.arguments,
+               self.source_url,
+               self.author,
+               self.author_url,
+               self.shells
+        )
+    }
+}
+
+#[allow(dead_code)]
 impl Workflow {
     pub fn render(&self, values: HashMap<&str, &str>) -> String {
         let mut command = self.command.clone();
