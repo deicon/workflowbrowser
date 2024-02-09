@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Display, Formatter};
-use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, PartialOrd)]
 pub enum Shell {
@@ -66,7 +66,6 @@ pub struct Workflow {
     #[serde(default)]
     pub shells: Vec<Shell>,
 }
-
 
 impl Display for Workflow {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

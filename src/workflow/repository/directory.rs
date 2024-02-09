@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-use di::injectable;
 use crate::prelude::{WorkflowError, WorkflowResult};
 use crate::workflow::file_format::Workflow;
 use crate::workflow::repository::WorkflowRepository;
+use di::injectable;
+use std::path::PathBuf;
 
 #[injectable(WorkflowRepository)]
 #[derive(Debug, Default)]
@@ -14,16 +14,15 @@ pub struct DirectoryRepository {
 impl DirectoryRepository {
     pub fn new(root: PathBuf) -> Self {
         let workflows = Self::visit_dir(root.clone()).unwrap();
-        DirectoryRepository {
-            root,
-            workflows,
-        }
+        DirectoryRepository { root, workflows }
     }
 
     fn visit_dir(path_buf: PathBuf) -> WorkflowResult<Vec<Workflow>> {
         let mut workflows = vec![];
         let path_str = path_buf.as_path().display().to_string();
-        for entry in std::fs::read_dir(&path_buf).map_err(|e| WorkflowError::NotFound(format!("{}{:?}", path_str.clone(), e)))? {
+        for entry in std::fs::read_dir(&path_buf)
+            .map_err(|e| WorkflowError::NotFound(format!("{}{:?}", path_str.clone(), e)))?
+        {
             let entry = entry.map_err(|_| WorkflowError::NotFound(path_str.clone()))?; // unwrap the result
             let path = entry.path();
             if path.is_file() {
@@ -56,7 +55,7 @@ impl WorkflowRepository for DirectoryRepository {
         let a = self.workflows.iter().find(|w| w.name == name);
         match a {
             Some(w) => Ok(w.clone()),
-            None => Err(WorkflowError::NotFound(name))
+            None => Err(WorkflowError::NotFound(name)),
         }
     }
 
@@ -65,7 +64,7 @@ impl WorkflowRepository for DirectoryRepository {
         Ok(a)
     }
 
-    fn save_workflow(& mut self, workflow: Workflow) -> WorkflowResult<()> {
+    fn save_workflow(&mut self, workflow: Workflow) -> WorkflowResult<()> {
         self.workflows.push(workflow.clone());
         Ok(())
     }
@@ -76,10 +75,16 @@ impl WorkflowRepository for DirectoryRepository {
     }
 
     fn query_workflows(&self, query: &str) -> WorkflowResult<Vec<Workflow>> {
-        let a:Vec<Workflow> =
-            self.workflows.iter()
-                .filter(|w|
-                    w.name.contains(query) || w.command.contains(query) || w.tags.contains(&query.to_string())).cloned().collect();
+        let a: Vec<Workflow> = self
+            .workflows
+            .iter()
+            .filter(|w| {
+                w.name.contains(query)
+                    || w.command.contains(query)
+                    || w.tags.contains(&query.to_string())
+            })
+            .cloned()
+            .collect();
         if !a.is_empty() {
             Ok(a)
         } else {
@@ -88,12 +93,11 @@ impl WorkflowRepository for DirectoryRepository {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use crate::workflow::repository::directory::DirectoryRepository;
     use crate::workflow::repository::WorkflowRepository;
+    use std::path::PathBuf;
 
     #[test]
     fn test_load_from_dir() {
@@ -110,7 +114,10 @@ mod tests {
     fn test_adding_should_add_new_workflow() {
         let mut repo = DirectoryRepository::new(PathBuf::from("tests/fixtures/workflows"));
 
-        if let Err(e) = repo.save_workflow(crate::workflow::file_format::Workflow::new("test", "echo test")) {
+        if let Err(e) = repo.save_workflow(crate::workflow::file_format::Workflow::new(
+            "test",
+            "echo test",
+        )) {
             panic!("Error saving workflow: {:?}", e);
         }
 
@@ -126,7 +133,10 @@ mod tests {
     fn test_adding_and_delete_should_remove_workflow() {
         let mut repo = DirectoryRepository::new(PathBuf::from("tests/fixtures/workflows"));
 
-        if let Err(e) = repo.save_workflow(crate::workflow::file_format::Workflow::new("test", "echo test")) {
+        if let Err(e) = repo.save_workflow(crate::workflow::file_format::Workflow::new(
+            "test",
+            "echo test",
+        )) {
             panic!("Error saving workflow: {:?}", e);
         }
 

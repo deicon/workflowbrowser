@@ -1,7 +1,7 @@
-use di::ServiceProvider;
 use crate::command::{HandleCommand, SearchCommand};
 use crate::prelude::git::GitRepository;
 use crate::workflow::repository::WorkflowRepository;
+use di::ServiceProvider;
 
 impl HandleCommand for SearchCommand {
     fn handle(&self, services: &ServiceProvider) {
@@ -11,7 +11,11 @@ impl HandleCommand for SearchCommand {
         let query_result = repo.query_workflows(self.query.as_str());
         if let Ok(workflows) = query_result {
             for a in workflows {
-                println!("---\n{}\n{:?}", a.command, a.description.unwrap_or("".to_string()));
+                println!(
+                    "---\n{}\n{:?}",
+                    a.command,
+                    a.description.unwrap_or("".to_string())
+                );
             }
         }
     }

@@ -3,24 +3,23 @@ use std::path::PathBuf;
 
 // use crate::command::{Cli, Commands, HandleCommand};
 
-
-
 use crossterm::{
-    event::{self, KeyCode, KeyEventKind},
-    terminal::{
-        disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    event::{self},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use ratatui::{Frame, prelude::{CrosstermBackend, Stylize, Terminal}, widgets::Paragraph};
+use ratatui::layout::Rect;
+use ratatui::prelude::{CrosstermBackend, Terminal};
 use std::io::{stdout, Result};
 
-use crate::ui::AppState;
+use crate::ui::components::Action;
+use crate::ui::components::Action::Quit;
+use crate::ui::Focus::List;
+use crate::ui::{AppState, Focus};
 
+mod command;
 mod prelude;
 mod workflow;
-mod command;
 
 mod ui;
 
@@ -35,51 +34,46 @@ fn main() -> Result<()> {
 }
 
 fn run() -> Result<()> {
-// create app state holding git_repo and local dir_repo
+    // create app state holding git_repo and local dir_repo
     let mut state = AppState::new(
         "https://github.com/warpdotdev/workflows.git",
         "main",
         PathBuf::from("tests/fixtures/github/warpdotdev"),
-        PathBuf::from("tests/fixtures/workflows"));
+        PathBuf::from("tests/fixtures/workflows"),
+    );
 
     init_terminal()?;
 
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
     loop {
-        terminal.draw(|frame| {
-            ui(&mut state, frame);
+        terminal.draw(|frame|
+            match state.focus {
+            Focus::List => state
+                .command_list_component
+                .render(&state, frame, Rect::default()),
         })?;
-        update(&mut state)?;
 
-        if state.should_quit {
+        let action = update(&mut state);
+
+        if let Quit = action {
             break;
         }
     }
     Ok(())
 }
 
-fn update(app_state: &mut AppState) -> Result<()>{
-    if event::poll(std::time::Duration::from_millis(16))? {
-        if let event::Event::Key(key) = event::read()? {
-            if key.kind == KeyEventKind::Press
-                && (key.code == KeyCode::Char('q') || key.code == KeyCode::Char('Q'))
-            {
-                app_state.should_quit = true;
+fn update(app_state: &mut AppState) -> Action {
+    if event::poll(std::time::Duration::from_millis(16)).unwrap() {
+        match app_state.focus {
+            List => {
+                if let Ok(event) = event::read() {
+                    return app_state.command_list_component.handle_events(Some(event));
+                }
             }
         }
     }
-    Ok(())
-}
-
-fn ui(_: &mut AppState, frame: &mut Frame) {
-    let area = frame.size();
-    frame.render_widget(
-        Paragraph::new("Hello Ratatui! (press 'q' to quit)")
-            .black()
-            .on_white(),
-            area,
-    );
+    Action::None
 }
 
 fn shutdown_terminal() -> Result<()> {

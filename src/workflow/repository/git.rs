@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-use di::injectable;
-use git2::build::{CheckoutBuilder, RepoBuilder};
 use crate::prelude::{WorkflowError, WorkflowResult};
 use crate::workflow::file_format::Workflow;
 use crate::workflow::repository::directory::DirectoryRepository;
 use crate::workflow::repository::WorkflowRepository;
+use di::injectable;
+use git2::build::{CheckoutBuilder, RepoBuilder};
+use std::path::PathBuf;
 #[injectable(WorkflowRepository)]
 #[allow(dead_code)]
 pub struct GitRepository {
@@ -15,13 +15,12 @@ pub struct GitRepository {
 }
 
 impl GitRepository {
-
     #[doc = r"Create a new GitRepository"]
     pub fn new(url: &str, branch: &str, path_buf: PathBuf) -> Self {
-
         // clone git repository using https url
-        if let Err(WorkflowError::IoError(message)) = Self::clone_repository(url, path_buf.clone()) {
-                println!("{}", message)
+        if let Err(WorkflowError::IoError(message)) = Self::clone_repository(url, path_buf.clone())
+        {
+            println!("{}", message)
         };
         GitRepository {
             url: url.to_string(),
@@ -35,12 +34,12 @@ impl GitRepository {
         // clone the git repository
         let mut builder = RepoBuilder::new();
         builder.with_checkout(CheckoutBuilder::new());
-            
-        let _ = builder.clone(url, root.as_path())
-            .map_err(|_| {WorkflowError::IoError("Unable to clone repo".to_string())});
+
+        let _ = builder
+            .clone(url, root.as_path())
+            .map_err(|_| WorkflowError::IoError("Unable to clone repo".to_string()));
         Ok(())
     }
-
 }
 
 impl WorkflowRepository for GitRepository {
@@ -73,13 +72,17 @@ impl WorkflowRepository for GitRepository {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use crate::workflow::repository::git::GitRepository;
     use crate::workflow::repository::WorkflowRepository;
+    use std::path::PathBuf;
 
     #[test]
     fn test_load_from_git() {
-        let repo = GitRepository::new("https://github.com/warpdotdev/workflows.git", "main", PathBuf::from("tests/fixtures/github/warpdotdev"));
+        let repo = GitRepository::new(
+            "https://github.com/warpdotdev/workflows.git",
+            "main",
+            PathBuf::from("tests/fixtures/github/warpdotdev"),
+        );
         assert_eq!(332, repo.get_workflows().unwrap().len());
     }
 }
