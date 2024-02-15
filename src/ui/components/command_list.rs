@@ -20,7 +20,7 @@ impl Component for CommandListComponent {
         let area = frame.size();
 
         // get list of all items from app state
-        let commands = _state.get_workflows();
+        let _commands = _state.get_workflows();
 
         frame.render_widget(
             Paragraph::new("Eine andere Message! (press 'q' to quit)")

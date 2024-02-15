@@ -1,7 +1,4 @@
 use std::path::PathBuf;
-use crossterm::event::{Event, KeyEvent, MouseEvent};
-use ratatui::Frame;
-use ratatui::layout::Rect;
 
 use crate::prelude::directory::DirectoryRepository;
 use crate::prelude::git::GitRepository;
@@ -40,7 +37,7 @@ impl AppState {
 
 impl WorkflowRepository for AppState {
     fn refresh(&mut self) -> WorkflowResult<()> {
-        self.git_repo.refresh();
+        let _ = self.git_repo.refresh();
         self.dir_repo.refresh()
 
     }
@@ -59,8 +56,8 @@ impl WorkflowRepository for AppState {
 
     fn get_workflows(&self) -> WorkflowResult<Vec<Workflow>> {
         let mut all = self.dir_repo.get_workflows()?;
-        let mut allGit = self.git_repo.get_workflows()?;
-        all.append(&mut allGit);
+        let mut all_git = self.git_repo.get_workflows()?;
+        all.append(&mut all_git);
         Ok(all)
     }
 
@@ -75,11 +72,11 @@ impl WorkflowRepository for AppState {
 
     fn query_workflows(&self, query: &str) -> WorkflowResult<Vec<Workflow>> {
         let mut result = vec![];
-        if let Ok(mut allLocal) = self.dir_repo.query_workflows(query) {
-            result.append(&mut allLocal);
+        if let Ok(mut all_local) = self.dir_repo.query_workflows(query) {
+            result.append(&mut all_local);
         }
-        if let Ok(mut allGit) = self.git_repo.query_workflows(query) {
-            result.append(&mut allGit);
+        if let Ok(mut all_git) = self.git_repo.query_workflows(query) {
+            result.append(&mut all_git);
         }
         Ok(result)
     }
