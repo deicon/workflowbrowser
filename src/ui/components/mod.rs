@@ -23,6 +23,7 @@ pub trait Component {
         }
     }
     fn handle_key_events(&mut self, _key: KeyEvent) -> Action {
+        println!("Handle Events {:?}", _key.state);
         Action::None
     }
     fn handle_mouse_events(&mut self, _mouse: MouseEvent) -> Action {

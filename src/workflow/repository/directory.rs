@@ -65,6 +65,9 @@ impl WorkflowRepository for DirectoryRepository {
     }
 
     fn save_workflow(&mut self, workflow: Workflow) -> WorkflowResult<()> {
+        // make sure to delete first. no need to update yet
+        let _ = self.delete_workflow(workflow.name());
+        // save as new entry
         self.workflows.push(workflow.clone());
         Ok(())
     }

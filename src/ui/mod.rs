@@ -5,9 +5,11 @@ use ratatui::layout::Rect;
 
 use crate::prelude::directory::DirectoryRepository;
 use crate::prelude::git::GitRepository;
-use crate::prelude::WorkflowResult;
+use crate::prelude::{WorkflowError, WorkflowResult};
 use crate::ui::components::command_list::CommandListComponent;
-use crate::ui::components::{Action, Component};
+use crate::ui::components::{Component};
+use crate::workflow::file_format::Workflow;
+use crate::workflow::repository::WorkflowRepository;
 
 pub mod components;
 
@@ -33,27 +35,52 @@ impl AppState {
             focus: Focus::List,
         })
     }
+
 }
 
-impl Component for AppState {
+impl WorkflowRepository for AppState {
+    fn refresh(&mut self) -> WorkflowResult<()> {
+        self.git_repo.refresh();
+        self.dir_repo.refresh()
 
-    fn handle_events(&mut self, event: Option<Event>) -> Action {
-        todo!()
     }
 
-    fn handle_key_events(&mut self, _key: KeyEvent) -> Action {
-        todo!()
+    fn get_workflow(&self, name: &str) -> WorkflowResult<Workflow> {
+        match self.dir_repo.get_workflow(name) {
+            Ok(wkf) => { Ok(wkf) }
+            Err(_) => {
+                match self.git_repo.get_workflow(name) {
+                    Ok(wkf) => { Ok(wkf) }
+                    Err(_) => {Err(WorkflowError::NotFound(format!("{} not found", name)))}
+                }
+            }
+        }
     }
 
-    fn handle_mouse_events(&mut self, _mouse: MouseEvent) -> Action {
-        todo!()
+    fn get_workflows(&self) -> WorkflowResult<Vec<Workflow>> {
+        let mut all = self.dir_repo.get_workflows()?;
+        let mut allGit = self.git_repo.get_workflows()?;
+        all.append(&mut allGit);
+        Ok(all)
     }
 
-    fn update(&mut self, _state: &mut AppState, _action: Action) -> Action {
-        todo!()
+    fn save_workflow(&mut self, workflow: Workflow) -> WorkflowResult<()> {
+        // only save to local. making copies of Workflows
+        self.dir_repo.save_workflow(workflow)
     }
 
-    fn render(&self, state: &AppState, f: &mut Frame, rect: Rect) {
-        todo!()
+    fn delete_workflow(&mut self, name: &str) -> WorkflowResult<()> {
+        self.dir_repo.delete_workflow(name)
+    }
+
+    fn query_workflows(&self, query: &str) -> WorkflowResult<Vec<Workflow>> {
+        let mut result = vec![];
+        if let Ok(mut allLocal) = self.dir_repo.query_workflows(query) {
+            result.append(&mut allLocal);
+        }
+        if let Ok(mut allGit) = self.git_repo.query_workflows(query) {
+            result.append(&mut allGit);
+        }
+        Ok(result)
     }
 }
