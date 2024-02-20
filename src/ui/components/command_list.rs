@@ -2,8 +2,7 @@ use crate::ui::components::{Action, Component};
 use crate::ui::AppState;
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ratatui::layout::Rect;
-use ratatui::prelude::Stylize;
-use ratatui::widgets::Paragraph;
+use ratatui::widgets::{List};
 use ratatui::Frame;
 use crate::prelude::repository::WorkflowRepository;
 
@@ -23,9 +22,7 @@ impl Component for CommandListComponent {
         let _commands = _state.get_workflows();
 
         frame.render_widget(
-            Paragraph::new("Eine andere Message! (press 'q' to quit)")
-                .black()
-                .on_white(),
+            List::new(_commands.unwrap()),
             area,
         );
     }

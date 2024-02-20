@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use ratatui::text::{Line, Span, Text};
+
+use ratatui::widgets::ListItem;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, PartialOrd)]
 pub enum Shell {
@@ -65,6 +68,33 @@ pub struct Workflow {
     pub author_url: Option<String>,
     #[serde(default)]
     pub shells: Vec<Shell>,
+}
+
+fn  simple_text_line<'a>(content: String) -> Line<'a> {
+    Line{
+        spans: vec![
+            Span{ content: content.into(), style: Default::default() },
+        ],
+        style: Default::default(),
+        alignment: None,
+    }
+}
+
+impl <'a> Into<ListItem<'a>> for Workflow {
+    fn into(self) -> ListItem<'a> {
+        let desc = self.description.unwrap_or_else(|| String::from(""));
+        let name = self.name.clone();
+        ListItem::new(Text{
+            lines: vec![
+                simple_text_line("------------------------------------------".into()),
+                simple_text_line(name),
+                simple_text_line(desc),
+                simple_text_line("------------------------------------------".into()),
+            ],
+            style: Default::default(),
+            alignment: None,
+        })
+    }
 }
 
 impl Display for Workflow {

@@ -17,3 +17,4 @@ impl From<std::io::Error> for WorkflowError {
 pub type WorkflowResult<T> = Result<T, WorkflowError>;
 #[allow(dead_code)]
 pub struct W<A>(A);
+
